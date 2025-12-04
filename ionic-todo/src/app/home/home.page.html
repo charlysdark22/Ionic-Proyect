@@ -1,20 +1,106 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>📝 Mi Lista de Tareas</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
+    <ion-toolbar color="primary">
+      <ion-title size="large">📝 Tareas</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <!-- Input para agregar nueva tarea -->
+  <ion-card class="input-card">
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="floating">Título de la tarea</ion-label>
+        <ion-input
+          type="text"
+          [(ngModel)]="newTodoTitle"
+          (keyup.enter)="addTodo()"
+          placeholder="Ej: Comprar leche"
+        ></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Descripción (opcional)</ion-label>
+        <ion-textarea
+          [(ngModel)]="newTodoDescription"
+          rows="2"
+          placeholder="Detalles adicionales..."
+        ></ion-textarea>
+      </ion-item>
+      <ion-button expand="block" color="success" (click)="addTodo()" class="add-button">
+        <ion-icon name="add-circle" slot="start"></ion-icon>
+        Agregar Tarea
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Estadísticas -->
+  <ion-card *ngIf="getTotalCount() > 0" class="stats-card">
+    <ion-card-content>
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-label">Total:</span>
+          <span class="stat-value">{{ getTotalCount() }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Completadas:</span>
+          <span class="stat-value complete">{{ getCompletedCount() }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Pendientes:</span>
+          <span class="stat-value pending">{{ getTotalCount() - getCompletedCount() }}</span>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Lista de tareas -->
+  <div *ngIf="(todos$ | async) as todos">
+    <ion-list *ngIf="todos.length > 0; else emptyState">
+      <ion-item-sliding
+        *ngFor="let todo of todos"
+        [class.completed-item]="todo.completed"
+        class="todo-item"
+      >
+        <ion-item>
+          <ion-checkbox
+            slot="start"
+            [checked]="todo.completed"
+            (ionChange)="toggleTodo(todo.id)"
+            color="success"
+          ></ion-checkbox>
+          <ion-label [class.completed-text]="todo.completed">
+            <h2>{{ todo.title }}</h2>
+            <p *ngIf="todo.description">{{ todo.description }}</p>
+            <p class="timestamp">{{ todo.createdAt | date : 'short' }}</p>
+          </ion-label>
+        </ion-item>
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="deleteTodo(todo.id)">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-list>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        <h2>¡Sin tareas pendientes!</h2>
+        <p>Agrega una nueva tarea para empezar</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Botón limpiar completadas -->
+  <div *ngIf="getCompletedCount() > 0" class="action-buttons">
+    <ion-button expand="block" color="warning" (click)="clearCompleted()">
+      <ion-icon name="trash-outline" slot="start"></ion-icon>
+      Limpiar completadas ({{ getCompletedCount() }})
+    </ion-button>
   </div>
 </ion-content>
